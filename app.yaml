@@ -22,3 +22,6 @@ libraries:
 - name: jinja2
   version: latest
 # [END libraries]
+
+builtins:
+- deferred: on

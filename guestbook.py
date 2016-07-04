@@ -20,6 +20,7 @@ import urllib
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from google.appengine.ext import deferred
 
 import jinja2
 import webapp2
@@ -118,9 +119,37 @@ class Guestbook(webapp2.RequestHandler):
 # [END guestbook]
 
 
+def fire(user, guestbook_name, t):
+    author = None
+    if user:
+        author = Author(
+                identity=user.id,
+                email=user.email)
+    for i in range(t):
+        greeting = Greeting(parent=guestbook_key(guestbook_name))
+        if author:
+            greeting.author = author
+        greeting.content = str(i)
+        greeting.put()
+
+
+class FireGreeting(webapp2.RequestHandler):
+    def get(self):
+        guestbook_name = self.request.get('guestbook_name',
+                                          DEFAULT_GUESTBOOK_NAME)
+        u = None
+        if users.get_current_user():
+            u.id = users.get_current_user().user_id()
+            u.email = users.get_current_user().email()
+        deferred.defer(fire, u, guestbook_name, 10000)
+        # self.fire(guestbook_name)
+        query_params = {'guestbook_name': guestbook_name}
+        self.redirect('/?' + urllib.urlencode(query_params))
+
 # [START app]
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/sign', Guestbook),
+    ('/fire', FireGreeting),
 ], debug=True)
 # [END app]
