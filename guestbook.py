@@ -19,6 +19,7 @@ import os
 import urllib
 
 from google.appengine.api import users
+from google.appengine.api import memcache
 from google.appengine.ext import ndb
 from google.appengine.ext import deferred
 
@@ -130,6 +131,7 @@ def fire(user, guestbook_name, t):
         greeting.author = author
     greeting.content = str(t)
     greeting.put()
+    memcache.set(key=guestbook_name, value=t)
 
 
 class FireGreeting(webapp2.RequestHandler):
@@ -146,10 +148,23 @@ class FireGreeting(webapp2.RequestHandler):
         query_params = {'guestbook_name': guestbook_name}
         self.redirect('/?' + urllib.urlencode(query_params))
 
+
+class GreetingStat(webapp2.RequestHandler):
+    def get(self):
+        guestbook_name = self.request.get('guestbook_name',
+                                          DEFAULT_GUESTBOOK_NAME)
+        v = memcache.get(key=guestbook_name)
+        if v:
+            self.response.write(str(v))
+        else:
+            self.response.write("no data")
+        # self.redirect('/?' + urllib.urlencode(query_params))
+
 # [START app]
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/sign', Guestbook),
     ('/fire', FireGreeting),
+    ('/stat', GreetingStat),
 ], debug=True)
 # [END app]

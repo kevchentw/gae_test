@@ -5,6 +5,7 @@
     <!-- [START css] -->
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery.min.js"></script>
     <!-- [END css] -->
     <style type="text/css">
       body {
@@ -73,12 +74,20 @@
       </form>
 
       <hr>
-
+      <span id="stat">gg</span>
+      <script>
+      function update_stat(){
+          $.get( "/stat?guestbook_name={{ guestbook_name }}", function( data ) {
+            console.log(data);
+            $("#stat").text(data);
+        });
+      }
+      setInterval(update_stat, 1000);
+      </script>
       <form>Guestbook name:
         <input value="{{ guestbook_name }}" name="guestbook_name">
         <input type="submit" value="switch">
       </form>
-
       <a href="{{ url|safe }}">{{ url_linktext }}</a>
     </div>
   </body>
