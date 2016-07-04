@@ -125,12 +125,11 @@ def fire(user, guestbook_name, t):
         author = Author(
                 identity=user.id,
                 email=user.email)
-    for i in range(t):
-        greeting = Greeting(parent=guestbook_key(guestbook_name))
-        if author:
-            greeting.author = author
-        greeting.content = str(i)
-        greeting.put()
+    greeting = Greeting(parent=guestbook_key(guestbook_name))
+    if author:
+        greeting.author = author
+    greeting.content = str(t)
+    greeting.put()
 
 
 class FireGreeting(webapp2.RequestHandler):
@@ -141,7 +140,8 @@ class FireGreeting(webapp2.RequestHandler):
         if users.get_current_user():
             u.id = users.get_current_user().user_id()
             u.email = users.get_current_user().email()
-        deferred.defer(fire, u, guestbook_name, 10000)
+        for i in range(100):
+            deferred.defer(fire, u, guestbook_name, i)
         # self.fire(guestbook_name)
         query_params = {'guestbook_name': guestbook_name}
         self.redirect('/?' + urllib.urlencode(query_params))
